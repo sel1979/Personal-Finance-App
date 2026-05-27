@@ -1744,7 +1744,7 @@ const AppLayout = () => {
                           <div key="fab-holder" className="flex items-center justify-center -translate-y-3.5 relative z-50 w-12 h-12 shrink-0">
                             <button 
                               onClick={() => handleNavClick(true)}
-                              className="w-14 h-14 absolute bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform cursor-pointer border-4 border-white dark:border-slate-950"
+                              className="w-14 h-14 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform cursor-pointer border-4 border-white dark:border-slate-950"
                               title="Register new transaction/asset"
                             >
                               <Plus size={24} className="hover:rotate-90 transition-transform duration-300" />
@@ -1865,7 +1865,7 @@ const AppLayout = () => {
                        <div key="fab-holder-fs" className="flex items-center justify-center -translate-y-3.5 relative z-50 w-12 h-12 shrink-0">
                          <button 
                            onClick={() => handleNavClick(true)}
-                           className="w-14 h-14 absolute bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform cursor-pointer border-4 border-white dark:border-slate-950"
+                           className="w-14 h-14 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform cursor-pointer border-4 border-white dark:border-slate-950"
                            title="Add entry"
                          >
                            <Plus size={24} className="hover:rotate-90 transition-transform duration-300" />
