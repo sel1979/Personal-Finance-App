@@ -1,0 +1,8 @@
+{
+  "name": "WealthFlow Finance",
+  "description": "A comprehensive personal finance dashboard for tracking transactions, managing investment portfolios, and setting budgets with interactive visualizations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
