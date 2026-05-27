@@ -24,12 +24,15 @@ const COLORS = ['#10b981', '#6366f1', '#a855f7', '#3b82f6', '#f59e0b', '#ec4899'
 const Dashboard = () => {
   const { transactions, investments, settings, formatMoney, accounts } = useAppState();
 
-  // Core metrics calculation
+      // Core metrics calculation
   const stats = useMemo(() => {
     // Current balance computed as sum of all manual balance cards
     const mockCashBalance = accounts.reduce((sum, a) => sum + a.balance, 0);
     const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
     const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
+    
+    // Liabilities Placeholder (Can compute loans)
+    const liabilities = 0; // Mock until added correctly
 
     // Sum of all holdings
     let investmentsCurrentValue = 0;
@@ -56,9 +59,21 @@ const Dashboard = () => {
     });
 
     const totalPortfolioValue = mockCashBalance + investmentsCurrentValue;
+    const netWorth = totalPortfolioValue - liabilities;
+    const savingsAmount = totalIncome - totalExpense;
+    const monthlyNetWorthChange = savingsAmount; // Approximate month variance
     const portfolioProfitLoss = investmentsCurrentValue - investmentsInvestedValue;
     const portfolioPnLPercent = investmentsInvestedValue > 0 ? (portfolioProfitLoss / investmentsInvestedValue) * 100 : 0;
-    const savingsAmount = totalIncome - totalExpense;
+
+    // Smart Financial Health Score (0-100)
+    let healthScore = 50; // base score
+    if (totalIncome > 0) {
+      if ((savingsAmount / totalIncome) > 0.2) healthScore += 20; // 20% savings rule
+      if ((totalExpense / totalIncome) < 0.5) healthScore += 15; // needs < 50%
+    }
+    if (investmentsCurrentValue > 0) healthScore += 10;
+    if (mockCashBalance > totalExpense * 2) healthScore += 5; // emergency fund
+    healthScore = Math.min(100, Math.max(0, healthScore));
 
     return {
       totalIncome,
@@ -66,6 +81,10 @@ const Dashboard = () => {
       savingsAmount,
       investmentsCurrentValue,
       totalPortfolioValue,
+      netWorth,
+      liabilities,
+      monthlyNetWorthChange,
+      healthScore,
       portfolioProfitLoss,
       portfolioPnLPercent,
       topStock,
@@ -156,24 +175,27 @@ const Dashboard = () => {
         <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="space-y-1 min-w-0">
             <span className="text-[10px] bg-white/20 text-white border border-white/30 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider backdrop-blur-md">
-              Total Portfolio Value
+              Current Net Worth
             </span>
             <h2 className="text-3xl md:text-4xl font-black tracking-tight mt-2.5 break-words">
-              {formatMoney(stats.totalPortfolioValue)}
+              {formatMoney(stats.netWorth)}
             </h2>
-            <p className="text-xs lg:text-sm text-indigo-200 truncate">Total Invested Holdings + Available Cash Ledger</p>
+            <p className="text-xs lg:text-sm text-indigo-200 truncate font-medium">Assets {formatMoney(stats.totalPortfolioValue)} - Liabilities {formatMoney(stats.liabilities)}</p>
           </div>
 
           <div className="flex flex-row gap-4 items-center w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
-            <div className="bg-white/10 p-3 rounded-2xl border border-white/15 backdrop-blur-md font-mono text-center shrink-0 flex-1 lg:flex-none">
-              <span className="text-[9px] text-indigo-100 block uppercase font-bold">Investments Value</span>
-              <span className="text-sm font-black text-white mt-1 block">
-                {formatMoney(stats.investmentsCurrentValue)}
-              </span>
+            <div className="bg-white/10 p-3 rounded-2xl border border-white/15 backdrop-blur-md text-center shrink-0 flex-1 lg:flex-none">
+              <span className="text-[9px] text-indigo-100 block uppercase font-bold tracking-widest">Health Score</span>
+              <div className="flex items-center justify-center gap-1 mt-1 font-mono">
+                <span className={`text-sm font-black ${stats.healthScore >= 70 ? 'text-green-300' : stats.healthScore >= 40 ? 'text-yellow-300' : 'text-red-300'}`}>
+                  {stats.healthScore}
+                </span>
+                <span className="text-xs text-white pb-0.5">/100</span>
+              </div>
             </div>
             
             <div className="bg-white/10 p-3 rounded-2xl border border-white/15 backdrop-blur-md font-mono text-center shrink-0">
-              <span className="text-[9px] text-indigo-100 block uppercase font-bold">Investments Return</span>
+              <span className="text-[9px] text-indigo-100 block uppercase font-bold tracking-widest">Investments ROI</span>
               <span className={`text-sm font-black flex items-center justify-center gap-0.5 mt-1 ${stats.portfolioProfitLoss >= 0 ? 'text-green-300' : 'text-red-300'}`}>
                 {stats.portfolioProfitLoss >= 0 ? '+' : ''}{stats.portfolioPnLPercent.toFixed(1)}%
               </span>
@@ -215,7 +237,7 @@ const Dashboard = () => {
                   hidden: { opacity: 0, y: 12 },
                   visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 15 } }
                 }}
-                className={`p-3 rounded-2xl text-left flex flex-col justify-between bg-white dark:bg-slate-900 border dark:border-slate-800 shadow-sm hover:scale-[1.01] transition-transform min-w-0`}
+                className={`p-3 rounded-2xl text-left flex flex-col justify-between bg-white dark:bg-slate-800 border dark:border-slate-700 shadow-sm hover:scale-[1.01] transition-transform min-w-0`}
               >
                 <div className="flex items-center justify-between gap-1.5 mb-1.5">
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate pr-1">
@@ -258,7 +280,7 @@ const Dashboard = () => {
             hidden: { opacity: 0, y: 15 },
             visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 15 } }
           }}
-          className="bg-white dark:bg-slate-900 p-3 md:p-4.5 rounded-2xl border dark:border-slate-800 shadow-sm flex flex-col justify-between hover:scale-[1.01] transition-transform min-w-0"
+          className="bg-white dark:bg-slate-800/50 p-3 md:p-4.5 rounded-2xl border dark:border-slate-700/50 shadow-sm flex flex-col justify-between hover:scale-[1.01] transition-transform min-w-0"
         >
           <div className="flex justify-between items-center mb-1 gap-1">
             <span className="text-[10px] md:text-xs text-slate-400 font-bold block truncate">Available Capital</span>
@@ -273,7 +295,7 @@ const Dashboard = () => {
             hidden: { opacity: 0, y: 15 },
             visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 15 } }
           }}
-          className="bg-white dark:bg-slate-900 p-3 md:p-4.5 rounded-2xl border dark:border-slate-800 shadow-sm flex flex-col justify-between hover:scale-[1.01] transition-transform min-w-0"
+          className="bg-white dark:bg-slate-800/50 p-3 md:p-4.5 rounded-2xl border dark:border-slate-700/50 shadow-sm flex flex-col justify-between hover:scale-[1.01] transition-transform min-w-0"
         >
           <div className="flex justify-between items-center mb-1 gap-1">
             <span className="text-[10px] md:text-xs text-slate-400 font-bold block truncate">Total Income</span>
@@ -288,7 +310,7 @@ const Dashboard = () => {
             hidden: { opacity: 0, y: 15 },
             visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 15 } }
           }}
-          className="bg-white dark:bg-slate-900 p-3 md:p-4.5 rounded-2xl border dark:border-slate-800 shadow-sm flex flex-col justify-between hover:scale-[1.01] transition-transform min-w-0"
+          className="bg-white dark:bg-slate-800/50 p-3 md:p-4.5 rounded-2xl border dark:border-slate-700/50 shadow-sm flex flex-col justify-between hover:scale-[1.01] transition-transform min-w-0"
         >
           <div className="flex justify-between items-center mb-1 gap-1">
             <span className="text-[10px] md:text-xs text-slate-400 font-bold block truncate">Expenses</span>
@@ -303,7 +325,7 @@ const Dashboard = () => {
             hidden: { opacity: 0, y: 15 },
             visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 15 } }
           }}
-          className="bg-white dark:bg-slate-900 p-3 md:p-4.5 rounded-2xl border dark:border-slate-800 shadow-sm flex flex-col justify-between hover:scale-[1.01] transition-transform min-w-0"
+          className="bg-white dark:bg-slate-800/50 p-3 md:p-4.5 rounded-2xl border dark:border-slate-700/50 shadow-sm flex flex-col justify-between hover:scale-[1.01] transition-transform min-w-0"
         >
           <div className="flex justify-between items-center mb-1 gap-1">
             <span className="text-[10px] md:text-xs text-slate-400 font-bold block truncate">Net Savings</span>
@@ -317,7 +339,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Chart Card */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm flex flex-col">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800/50 p-6 rounded-3xl border dark:border-slate-700/50 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">Capital Growth Strategy</h3>
@@ -354,7 +376,7 @@ const Dashboard = () => {
         </div>
 
         {/* Top Performer Stock and MF Highlights */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm flex flex-col justify-between space-y-4">
+        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border dark:border-slate-700/50 shadow-sm flex flex-col justify-between space-y-4">
           <div>
             <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">Holdings Highlights</h3>
             <p className="text-[10px] text-slate-400 font-medium pb-2">Top performers in self manual ledger</p>
@@ -437,7 +459,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Asset Allocation Pie chart */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm flex flex-col items-center">
+        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border dark:border-slate-700/50 shadow-sm flex flex-col items-center">
           <div className="flex justify-between items-center w-full mb-4 gap-2">
             <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 truncate">Asset class Allocation</h4>
             <span className="text-[9px] uppercase font-bold text-slate-400 shrink-0">Total Diversification</span>
@@ -474,9 +496,9 @@ const Dashboard = () => {
           </div>
 
           {/* Legend Grid */}
-          <div className="grid grid-cols-2 gap-2 w-full pt-4 border-t dark:border-slate-800 text-[10px] font-extrabold">
+          <div className="grid grid-cols-2 gap-2 w-full pt-4 border-t dark:border-slate-700/50 text-[10px] font-extrabold">
             {assetAllocationData.map((e, index) => (
-              <div key={e.name} className="flex items-center gap-1.5 justify-start bg-slate-50 dark:bg-slate-950/40 p-1.5 rounded-lg border border-slate-100/5 dark:border-slate-800/10">
+              <div key={e.name} className="flex items-center gap-1.5 justify-start bg-slate-50 dark:bg-slate-950/40 p-1.5 rounded-lg border border-slate-100/5 dark:border-slate-700/50/10">
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
                 <span className="text-slate-700 dark:text-slate-300 shrink-0 truncate max-w-[70px] select-none">{e.name}:</span>
                 <span className="text-slate-900 dark:text-slate-100 shrink-0 ml-auto font-mono font-black">{formatMoney(e.value)}</span>
@@ -486,7 +508,7 @@ const Dashboard = () => {
         </div>
 
         {/* Expense Category Breakdown Pie chart */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm flex flex-col items-center">
+        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border dark:border-slate-700/50 shadow-sm flex flex-col items-center">
           <div className="flex justify-between items-center w-full mb-4 gap-2">
             <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 truncate">Expense category Allocation</h4>
             <span className="text-[9px] uppercase font-bold text-slate-400 shrink-0">Monthly Burn</span>
@@ -523,9 +545,9 @@ const Dashboard = () => {
           </div>
 
           {/* Legend Grid */}
-          <div className="grid grid-cols-2 gap-2 w-full pt-4 border-t dark:border-slate-800 text-[10px] font-extrabold">
+          <div className="grid grid-cols-2 gap-2 w-full pt-4 border-t dark:border-slate-700/50 text-[10px] font-extrabold">
             {expenseCategoryData.map((e, index) => (
-              <div key={e.name} className="flex items-center gap-1.5 justify-start bg-slate-50 dark:bg-slate-950/40 p-1.5 rounded-lg border border-slate-100/5 dark:border-slate-800/10">
+              <div key={e.name} className="flex items-center gap-1.5 justify-start bg-slate-50 dark:bg-slate-950/40 p-1.5 rounded-lg border border-slate-100/5 dark:border-slate-700/50/10">
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[(index + 1) % COLORS.length] }}></span>
                 <span className="text-slate-700 dark:text-slate-300 shrink-0 truncate max-w-[70px] select-none">{e.name}:</span>
                 <span className="text-slate-900 dark:text-slate-100 shrink-0 ml-auto font-mono font-black">{formatMoney(e.value)}</span>
@@ -536,9 +558,48 @@ const Dashboard = () => {
 
       </div>
 
+      {/* Bill Reminders Widget */}
+      <div className="bg-white dark:bg-slate-800/50 rounded-3xl border dark:border-slate-700/50 shadow-sm p-6 mt-6 overflow-hidden relative">
+        <div className="absolute top-0 right-0 p-4 opacity-5">
+           <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div className="flex justify-between items-center mb-5 relative z-10">
+          <div>
+            <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">Upcoming Bills & Reminders</h4>
+            <p className="text-[10px] text-slate-400 font-medium">Keep track of upcoming dues and subscriptions</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 relative z-10">
+           {useAppState().recurringTransactions.map((bill, i) => {
+             const now = new Date();
+             const nextDate = new Date(bill.nextDate);
+             const daysDiff = Math.ceil((nextDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
+             const dueStr = daysDiff === 0 ? 'Today' : daysDiff < 0 ? 'Overdue' : `In ${daysDiff} Days`;
+             const priority = daysDiff < 3 ? 'Critical' : daysDiff < 7 ? 'High' : 'Medium';
+
+             return (
+             <div key={bill.id} className="bg-slate-50 dark:bg-slate-950/40 border dark:border-slate-800/60 p-4 rounded-2xl flex flex-col justify-between hover:border-indigo-500/30 transition-colors cursor-pointer group">
+               <div className="flex justify-between items-start mb-4">
+                 <div>
+                   <span className="text-[9px] uppercase font-bold text-slate-500 bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded block w-max mb-1.5">{bill.category}</span>
+                   <h5 className="text-xs font-extrabold text-slate-900 dark:text-slate-100">{bill.description}</h5>
+                 </div>
+               </div>
+               <div className="flex justify-between items-end">
+                 <div>
+                   <span className={`block text-[10px] font-bold mb-0.5 tracking-wider uppercase ${daysDiff < 3 ? 'text-red-500' : 'text-slate-500'}`}>Due: {dueStr}</span>
+                   <span className="text-lg font-black text-slate-900 dark:text-slate-100">{formatMoney(bill.amount)}</span>
+                 </div>
+                 <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${priority === 'Critical' ? 'bg-red-50 dark:bg-red-950/40 text-red-600 border-red-200 dark:border-red-900/40' : priority === 'High' ? 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 border-orange-200 dark:border-orange-900/40' : 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 border-blue-200 dark:border-blue-900/40'}`}>{priority}</span>
+               </div>
+             </div>
+           )})}
+        </div>
+      </div>
+
       {/* Recent Transactions List inside phone layout scope */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 shadow-sm overflow-hidden mt-6">
-        <div className="px-5 py-4 border-b dark:border-slate-800/60 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/40">
+      <div className="bg-white dark:bg-slate-800/50 rounded-3xl border dark:border-slate-700/50 shadow-sm overflow-hidden mt-6">
+        <div className="px-5 py-4 border-b dark:border-slate-700/50/60 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/40">
           <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">Recent manual ledger Logs</h4>
           <Link to="/transactions" className="text-indigo-650 dark:text-indigo-400 font-extrabold text-xs flex items-center gap-0.5">
             View All <ChevronRight size={14} />

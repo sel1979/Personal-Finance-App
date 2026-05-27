@@ -47,11 +47,21 @@ const InvestmentsPage = () => {
   const { investments, investmentHistory, addInvestment, sellInvestment, deleteInvestment, formatMoney, settings } = useAppState();
   
   // Tab states
-  const [activeTab, setActiveTab ] = useState<'all' | 'stocks' | 'mutual_funds' | 'sips' | 'goals'>('all');
+  const [activeTab, setActiveTab ] = useState<'all' | 'stocks' | 'mutual_funds' | 'sips' | 'goals' | 'rebalancing'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'buy' | 'sell'>('buy');
   const [selectedHolding, setSelectedHolding] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Target Allocations state
+  const [targetAllocations, setTargetAllocations] = useState<Record<string, number>>({
+    stock: 50,
+    mutual_fund: 40,
+    etf: 0,
+    gold: 10,
+    bond: 0,
+    crypto: 0
+  });
 
   // Transaction form states
   const [buyForm, setBuyForm] = useState({
@@ -315,7 +325,7 @@ const InvestmentsPage = () => {
 
       {/* Primary Actions bar & Tab controls */}
       <div className="flex flex-col gap-3">
-        <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-2.5 rounded-2xl border dark:border-slate-800 shadow-sm">
+        <div className="flex justify-between items-center bg-white dark:bg-slate-800 p-2.5 rounded-2xl border dark:border-slate-700 shadow-sm">
           <div className="flex overflow-x-auto no-scrollbar gap-1.5 max-w-full">
             <button 
               onClick={() => setActiveTab('all')}
@@ -343,9 +353,15 @@ const InvestmentsPage = () => {
             </button>
             <button 
               onClick={() => setActiveTab('goals')}
-              className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all stretch whitespace-nowrap ${activeTab === 'goals' ? 'bg-purple-600 text-white' : 'text-purple-500 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800'}`}
+              className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all stretch whitespace-nowrap ${activeTab === 'goals' ? 'bg-purple-600 text-white' : 'text-purple-500 dark:text-slate-400 hover:bg-purple-50 dark:hover:bg-slate-800'}`}
             >
               Goals Target
+            </button>
+            <button 
+              onClick={() => setActiveTab('rebalancing')}
+              className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all stretch whitespace-nowrap ${activeTab === 'rebalancing' ? 'bg-amber-600 text-white' : 'text-amber-500 dark:text-slate-400 hover:bg-amber-50 dark:hover:bg-slate-800'}`}
+            >
+              Rebalancing
             </button>
           </div>
 
@@ -365,7 +381,7 @@ const InvestmentsPage = () => {
             placeholder={`Search holdings by name or ticker...`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl text-xs shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 text-slate-700 dark:text-slate-100"
+            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800/50 border dark:border-slate-700/50 rounded-2xl text-xs shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 text-slate-700 dark:text-slate-100"
           />
         </div>
       </div>
@@ -382,7 +398,7 @@ const InvestmentsPage = () => {
           {activeTab === 'stocks' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredInvestments.map(inv => {
+                {filteredInvestments.map((inv, idx) => {
                   const investedVal = inv.quantity * inv.buyPrice;
                   const currentVal = inv.quantity * inv.currentPrice;
                   const stockPnL = currentVal - investedVal;
@@ -396,8 +412,8 @@ const InvestmentsPage = () => {
                       key={inv.id} 
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                      className="bg-white dark:bg-slate-900 p-4 md:p-5 rounded-2xl border dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-indigo-500/50 transition-colors w-full"
+                      transition={{ duration: 0.4, delay: idx * 0.05, ease: "easeOut" }}
+                      className="bg-white dark:bg-slate-800/50 p-4 md:p-5 rounded-2xl border dark:border-slate-700/50 shadow-sm flex flex-col justify-between hover:border-indigo-500/50 transition-colors w-full"
                     >
                       <div className="flex justify-between items-start gap-2 md:gap-4">
                         <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -421,7 +437,7 @@ const InvestmentsPage = () => {
                       </div>
 
                       {/* Middle data block */}
-                      <div className="grid grid-cols-3 gap-1 md:gap-2 bg-slate-50 dark:bg-slate-950/50 p-2 md:p-3 rounded-xl mt-3 md:mt-4 border dark:border-slate-800/60 font-mono text-center">
+                      <div className="grid grid-cols-3 gap-1 md:gap-2 bg-slate-50 dark:bg-slate-950/50 p-2 md:p-3 rounded-xl mt-3 md:mt-4 border dark:border-slate-700/50/60 font-mono text-center">
                         <div className="truncate px-1">
                           <span className="text-[8px] md:text-[9px] text-slate-400 block font-semibold uppercase truncate">Qty</span>
                           <span className="text-[10px] md:text-xs font-bold text-slate-700 dark:text-slate-300 block mt-0.5 truncate">{inv.quantity}</span>
@@ -437,7 +453,7 @@ const InvestmentsPage = () => {
                       </div>
 
                       {/* Bottom gain indicator */}
-                      <div className="flex justify-between items-center mt-3 md:mt-4 pt-3 border-t dark:border-slate-800/80">
+                      <div className="flex justify-between items-center mt-3 md:mt-4 pt-3 border-t dark:border-slate-700/50/80">
                         <div className="truncate pr-2">
                           <span className="text-[9px] md:text-[10px] text-slate-400 block truncate">Total Invested: <span className="font-bold text-slate-600 dark:text-slate-300">{formatMoney(investedVal)}</span></span>
                           <span className="text-[9px] md:text-[10px] text-slate-400 block mt-0.5 truncate">Brokerage: <span className="font-bold">{formatMoney(inv.brokerage || 20)}</span></span>
@@ -471,7 +487,7 @@ const InvestmentsPage = () => {
                 })}
 
                 {filteredInvestments.length === 0 && (
-                  <div className="col-span-full bg-white dark:bg-slate-900 border border-dashed text-slate-400 dark:border-slate-800 p-12 text-center rounded-2xl">
+                  <div className="col-span-full bg-white dark:bg-slate-800/50 border border-dashed text-slate-400 dark:border-slate-700/50 p-12 text-center rounded-2xl">
                     <AlertCircle className="mx-auto text-slate-300 dark:text-slate-800 mb-2" size={32} />
                     <p className="font-bold">No stock holdings found in manual ledger</p>
                     <p className="text-xs">Click "Add Asset" to enter your first purchased stock.</p>
@@ -485,7 +501,7 @@ const InvestmentsPage = () => {
           {activeTab === 'mutual_funds' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredInvestments.map(inv => {
+                {filteredInvestments.map((inv, idx) => {
                   const investedVal = inv.quantity * inv.buyPrice;
                   const currentVal = inv.quantity * inv.currentPrice;
                   const mfPnL = currentVal - investedVal;
@@ -498,8 +514,8 @@ const InvestmentsPage = () => {
                       key={inv.id} 
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                      className="bg-white dark:bg-slate-900 p-4 md:p-5 rounded-2xl border dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-indigo-500/50 transition-colors w-full"
+                      transition={{ duration: 0.4, delay: idx * 0.05, ease: "easeOut" }}
+                      className="bg-white dark:bg-slate-800/50 p-4 md:p-5 rounded-2xl border dark:border-slate-700/50 shadow-sm flex flex-col justify-between hover:border-indigo-500/50 transition-colors w-full"
                     >
                       <div className="flex justify-between items-start gap-2 md:gap-4">
                         <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -525,14 +541,14 @@ const InvestmentsPage = () => {
                       </div>
 
                       {/* Formatted middle block containing SIP parameters */}
-                      <div className="grid grid-cols-3 gap-1 md:gap-2 bg-slate-50 dark:bg-slate-950/50 p-2 md:p-3 rounded-xl mt-3 md:mt-4 border dark:border-slate-800/60 font-mono text-center">
+                      <div className="grid grid-cols-3 gap-1 md:gap-2 bg-slate-50 dark:bg-slate-950/50 p-2 md:p-3 rounded-xl mt-3 md:mt-4 border dark:border-slate-700/50/60 font-mono text-center">
                         <div className="truncate px-1">
                           <span className="text-[8px] md:text-[9px] text-slate-400 block font-semibold uppercase truncate">SOP / SIP Status</span>
                           <span className={`text-[9px] md:text-[10px] font-bold block mt-0.5 truncate ${inv.isSIP ? 'text-emerald-500' : 'text-indigo-500'}`}>
                             {inv.isSIP ? `SIP active` : 'Lump Sum'}
                           </span>
                         </div>
-                        <div className="truncate px-1 border-x border-slate-200 dark:border-slate-800/80">
+                        <div className="truncate px-1 border-x border-slate-200 dark:border-slate-700/50/80">
                           <span className="text-[8px] md:text-[9px] text-slate-400 block font-semibold uppercase truncate">Accumulated Units</span>
                           <span className="text-[10px] md:text-xs font-bold text-slate-700 dark:text-slate-300 block mt-0.5 truncate">{inv.quantity.toFixed(4)}</span>
                         </div>
@@ -586,7 +602,7 @@ const InvestmentsPage = () => {
                       )}
 
                       {/* Bottom row displaying overall returns */}
-                      <div className="flex justify-between items-center mt-3 md:mt-4 pt-3 border-t dark:border-slate-800/80">
+                      <div className="flex justify-between items-center mt-3 md:mt-4 pt-3 border-t dark:border-slate-700/50/80">
                         <div className="truncate pr-2">
                           <span className="text-[9px] md:text-[10px] text-slate-400 block truncate">Invested Capital: <span className="font-bold text-slate-600 dark:text-slate-300">{formatMoney(investedVal)}</span></span>
                           <span className="text-[9px] md:text-[10px] text-slate-400 block mt-0.5 truncate">Purchased Date: <span className="font-semibold">{inv.buyDate}</span></span>
@@ -620,7 +636,7 @@ const InvestmentsPage = () => {
                 })}
 
                 {filteredInvestments.length === 0 && (
-                  <div className="col-span-full bg-white dark:bg-slate-900 border border-dashed text-slate-400 dark:border-slate-800 p-12 text-center rounded-2xl">
+                  <div className="col-span-full bg-white dark:bg-slate-800/50 border border-dashed text-slate-400 dark:border-slate-700/50 p-12 text-center rounded-2xl">
                     <Layers className="mx-auto text-slate-300 dark:text-slate-800 mb-2" size={32} />
                     <p className="font-bold">No mutual funds entered under manual ledger</p>
                     <p className="text-xs">Select "Add Asset" with Asset category "Mutual Fund" to track your first units.</p>
@@ -636,7 +652,7 @@ const InvestmentsPage = () => {
               
               {/* Asset Allocation breakdown row using Recharts */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm flex flex-col items-center">
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border dark:border-slate-700/50 shadow-sm flex flex-col items-center">
                   <h4 className="font-extrabold text-sm self-start mb-4 text-slate-900 dark:text-slate-100">Holdings asset Allocation</h4>
                   <div className="w-full h-[180px]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -683,7 +699,7 @@ const InvestmentsPage = () => {
                 </div>
 
                 {/* Growth and performance review cards */}
-                <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm space-y-4">
+                <div className="lg:col-span-2 bg-white dark:bg-slate-800/50 p-6 rounded-3xl border dark:border-slate-700/50 shadow-sm space-y-4">
                   <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">Asset type Comparison</h4>
                   <div className="space-y-3 pt-2">
                     {/* Stocks Row */}
@@ -746,8 +762,8 @@ const InvestmentsPage = () => {
               </div>
 
               {/* Comprehensive simple list of all assets */}
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/40">
+              <div className="bg-white dark:bg-slate-800/50 rounded-3xl border dark:border-slate-700/50 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b dark:border-slate-700/50 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/40">
                   <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">All Portfolio Assets Listing ({filteredInvestments.length})</h4>
                   <span className="text-[10px] uppercase font-bold text-indigo-600 dark:text-indigo-400">Real-time calculations active</span>
                 </div>
@@ -798,7 +814,7 @@ const InvestmentsPage = () => {
               
               {/* Top summary cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border dark:border-slate-800 shadow-sm">
+                <div className="bg-white dark:bg-slate-800/50 p-5 rounded-2xl border dark:border-slate-700/50 shadow-sm">
                   <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Upcoming monthly active SIPs</span>
                   <h3 className="text-2xl font-black mt-1 text-slate-900 dark:text-slate-100">
                     {formatMoney(investments.filter(i => i.type === 'mutual_fund' && i.isSIP).reduce((a, b) => a + (b.sipAmount || 0), 0))}
@@ -816,8 +832,8 @@ const InvestmentsPage = () => {
               </div>
 
               {/* Active SIP List */}
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/40">
+              <div className="bg-white dark:bg-slate-800/50 rounded-3xl border dark:border-slate-700/50 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b dark:border-slate-700/50 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/40">
                   <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">Active SIP Schedule List</h4>
                   <span className="text-[10px] uppercase font-extrabold text-indigo-650 dark:text-indigo-300">Trigger manual purchase</span>
                 </div>
@@ -863,7 +879,7 @@ const InvestmentsPage = () => {
                   })}
 
                   {investments.filter(i => i.type === 'mutual_fund' && i.isSIP).length === 0 && (
-                    <div className="p-12 text-center text-slate-400 dark:border-slate-800">
+                    <div className="p-12 text-center text-slate-400 dark:border-slate-700/50">
                       <AlertCircle className="mx-auto text-slate-300 dark:text-slate-800 mb-2" size={32} />
                       <p className="font-bold">No active SIP structures discovered</p>
                       <p className="text-xs">Create or enable "SIP" inside "Add Asset" dropdown options of mutual funds.</p>
@@ -897,7 +913,7 @@ const InvestmentsPage = () => {
                   const val = inv.quantity * inv.currentPrice;
                   const percent = Math.min(100, Math.ceil((val / (inv.goalTarget || 1)) * 100));
                   return (
-                    <div key={inv.id} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border dark:border-slate-800 shadow-sm space-y-3.5">
+                    <div key={inv.id} className="bg-white dark:bg-slate-800/50 p-5 rounded-2xl border dark:border-slate-700/50 shadow-sm space-y-3.5">
                       <div className="flex justify-between items-start">
                         <div>
                           <span className="text-[9px] bg-purple-100 text-purple-850 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Goal Active</span>
@@ -925,7 +941,7 @@ const InvestmentsPage = () => {
                 })}
 
                 {investments.filter(i => !!i.goalName).length === 0 && (
-                  <div className="col-span-full bg-white dark:bg-slate-900 border border-dashed text-slate-400 dark:border-slate-800 p-12 text-center rounded-2xl">
+                  <div className="col-span-full bg-white dark:bg-slate-800/50 border border-dashed text-slate-400 dark:border-slate-700/50 p-12 text-center rounded-2xl">
                     <Target className="mx-auto text-slate-300 dark:text-slate-800 mb-2" size={32} />
                     <p className="font-bold">No active lock milestones established</p>
                     <p className="text-xs">Add a new Mutual Fund holding with goal information populated to view progress.</p>
@@ -934,12 +950,103 @@ const InvestmentsPage = () => {
               </div>
             </div>
           )}
+          {activeTab === 'rebalancing' && (
+            <div className="space-y-6">
+              
+              {/* Introduction Card */}
+              <div className="bg-amber-900 text-white p-6 rounded-3xl border border-amber-800 shadow-xl relative overflow-hidden">
+                <div className="relative z-10 space-y-2">
+                  <h4 className="text-lg font-black tracking-tight flex items-center gap-2">
+                    <Activity size={22} />
+                    Portfolio Rebalancing
+                  </h4>
+                  <p className="text-xs text-amber-200 leading-normal max-w-lg">
+                    Define relative target allocations across your portfolio to receive automated discrepancy metrics and guided buy/sell action plans to restore intended diversification. 
+                  </p>
+                </div>
+                <div className="absolute right-0 bottom-0 w-32 h-32 bg-amber-750/30 rounded-full blur-xl"></div>
+              </div>
+
+              {/* Setting targets */}
+              <div className="bg-white dark:bg-slate-800 border dark:border-slate-700/50 p-5 rounded-2xl shadow-sm text-sm">
+                <h4 className="font-extrabold text-slate-800 dark:text-slate-100 mb-4">Set Target Asset Class Weights</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                   {Object.entries(targetAllocations).map(([k, v]) => (
+                     <div key={k} className="space-y-1">
+                       <label className="text-[10px] uppercase font-bold text-slate-400 block">{k.replace('_', ' ')} (%)</label>
+                       <input 
+                         type="number"
+                         value={v.toString()}
+                         onChange={(e) => {
+                           const val = parseInt(e.target.value) || 0;
+                           setTargetAllocations(prev => ({ ...prev, [k]: val }));
+                         }}
+                         className="w-full bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500"
+                       />
+                     </div>
+                   ))}
+                </div>
+                <div className="mt-4 text-xs font-bold text-slate-500">
+                   Total target allocated: <span className={Object.values(targetAllocations).reduce((a: any, b: any) => (a as number) + (b as number), 0) !== 100 ? 'text-red-500' : 'text-green-500'}>{Object.values(targetAllocations).reduce((a: any, b: any) => (a as number) + (b as number), 0)}%</span> (Must equal 100%)
+                </div>
+              </div>
+
+              {/* Action plan */}
+              <div className="grid grid-cols-1 gap-4">
+                {Object.entries(targetAllocations).map(([k, targetPercentageRaw]) => {
+                   const targetPercentage = targetPercentageRaw as number;
+                   const currValue = investments.filter(i => i.type === k).reduce((sum, inv) => sum + (inv.quantity * inv.currentPrice), 0);
+                   const currPercentage = stats.totalCurrentValue > 0 ? (currValue / stats.totalCurrentValue) * 100 : 0;
+                   const targetValue = (stats.totalCurrentValue * targetPercentage) / 100;
+                   const discrepancy = targetValue - currValue;
+                   
+                   return (
+                     <div key={k} className="bg-white dark:bg-slate-800/50 p-4 border dark:border-slate-700/50 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="min-w-0 flex-1">
+                            <span className="uppercase text-[9px] font-black text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-md mb-1.5 inline-block">{k.replace('_', ' ')}</span>
+                            <div className="flex gap-4 mt-2">
+                               <div>
+                                 <span className="block text-[10px] text-slate-400">Current</span>
+                                 <span className="font-bold text-xs">{currPercentage.toFixed(1)}%</span>
+                               </div>
+                               <div>
+                                 <span className="block text-[10px] text-slate-400">Target</span>
+                                 <span className="font-bold text-xs text-indigo-600 dark:text-indigo-400">{targetPercentage}%</span>
+                               </div>
+                            </div>
+                        </div>
+
+                        <div className="w-full md:w-auto mt-2 md:mt-0 p-3 bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 rounded-xl text-center md:text-right shrink-0">
+                            {discrepancy > 10 ? (
+                                <div className="text-green-600 dark:text-green-400">
+                                   <span className="text-[10px] uppercase font-black tracking-widest block mb-0.5">BUY ASSETS</span>
+                                   <span className="text-sm font-black">+{formatMoney(discrepancy)}</span>
+                                </div>
+                            ) : discrepancy < -10 ? (
+                                <div className="text-red-600 dark:text-red-400">
+                                   <span className="text-[10px] uppercase font-black tracking-widest block mb-0.5">SELL ASSETS</span>
+                                   <span className="text-sm font-black">{formatMoney(Math.abs(discrepancy))}</span>
+                                </div>
+                            ) : (
+                                <div className="text-slate-400">
+                                   <span className="text-[10px] uppercase font-black tracking-widest block mb-0.5">BALANCED</span>
+                                   <span className="text-sm font-black">0</span>
+                                </div>
+                            )}
+                        </div>
+                     </div>
+                   );
+                })}
+              </div>
+
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
 
       {/* Transaction History Logs */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 shadow-sm overflow-hidden mt-8">
-        <div className="p-5 border-b dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/40">
+      <div className="bg-white dark:bg-slate-800/50 rounded-3xl border dark:border-slate-700/50 shadow-sm overflow-hidden mt-8">
+        <div className="p-5 border-b dark:border-slate-700/50 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/40">
           <h3 className="font-black text-sm text-slate-900 dark:text-slate-100">Trade book & Actions History</h3>
           <button className="text-indigo-600 dark:text-indigo-400 font-black text-xs hover:underline uppercase tracking-wider">Export Ledger</button>
         </div>
@@ -947,7 +1054,7 @@ const InvestmentsPage = () => {
           {investmentHistory.map((h) => {
             const isBuy = h.transactionType === 'buy';
             return (
-              <div key={h.id} className="flex items-center justify-between px-4 py-4 md:px-5 border-b dark:border-slate-800/60 hover:bg-slate-50/20 dark:hover:bg-slate-850/20 transition-colors">
+              <div key={h.id} className="flex items-center justify-between px-4 py-4 md:px-5 border-b dark:border-slate-700/50/60 hover:bg-slate-50/20 dark:hover:bg-slate-850/20 transition-colors">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className={`w-8 h-8 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0`}>
                     <span className="font-bold text-[10px] text-slate-600 dark:text-slate-300">
@@ -985,10 +1092,10 @@ const InvestmentsPage = () => {
       {/* Modern Dialog sheet for managing Buy / Sell entries */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 z-[120] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border dark:border-slate-800 animate-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-slate-800/50 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border dark:border-slate-700/50 animate-in zoom-in-95 duration-200">
             
             {/* Modal Header */}
-            <div className="p-5 border-b dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/40">
+            <div className="p-5 border-b dark:border-slate-700/50 flex items-center justify-between bg-slate-50 dark:bg-slate-950/40">
               <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <Briefcase size={20} className="text-indigo-600" />
                 {modalType === 'buy' ? 'Manual Asset Purchase Form' : `Redeem Holding Shares`}
@@ -1090,7 +1197,7 @@ const InvestmentsPage = () => {
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-slate-400">Broker Platform</label>
                         <select 
-                          className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-xs border-none rounded-xl"
+                          className="w-full px-4 py-2 bg-white dark:bg-slate-800/50 text-xs border-none rounded-xl"
                           value={buyForm.broker}
                           onChange={(e) => setBuyForm(p => ({ ...p, broker: e.target.value }))}
                         >
@@ -1104,7 +1211,7 @@ const InvestmentsPage = () => {
                         <label className="text-xs font-bold text-slate-400">Brokerage Fee</label>
                         <input 
                           type="number" 
-                          className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-xs border-none rounded-xl"
+                          className="w-full px-4 py-2 bg-white dark:bg-slate-800/50 text-xs border-none rounded-xl"
                           value={buyForm.brokerage}
                           onChange={(e) => setBuyForm(p => ({ ...p, brokerage: e.target.value }))}
                         />
@@ -1121,7 +1228,7 @@ const InvestmentsPage = () => {
                           <input 
                             type="text" 
                             placeholder="e.g. HDFC Mutual Fund" 
-                            className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-xs border-none rounded-xl focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-4 py-2 bg-white dark:bg-slate-800/50 text-xs border-none rounded-xl focus:ring-2 focus:ring-indigo-500"
                             value={buyForm.amcName}
                             onChange={(e) => setBuyForm(p => ({ ...p, amcName: e.target.value }))}
                           />
@@ -1145,7 +1252,7 @@ const InvestmentsPage = () => {
                           <input 
                             type="number" 
                             placeholder="e.g. 5000" 
-                            className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-xs border-none rounded-xl focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-4 py-2 bg-white dark:bg-slate-800/50 text-xs border-none rounded-xl focus:ring-2 focus:ring-indigo-500"
                             value={buyForm.sipAmount}
                             onChange={(e) => setBuyForm(p => ({ ...p, sipAmount: e.target.value }))}
                           />
@@ -1153,7 +1260,7 @@ const InvestmentsPage = () => {
                       )}
 
                       {/* Goal based investing fields */}
-                      <div className="border-t border-slate-200/50 dark:border-slate-800/60 pt-3 mt-1.5 space-y-3">
+                      <div className="border-t border-slate-200/50 dark:border-slate-700/50/60 pt-3 mt-1.5 space-y-3">
                         <span className="text-[10px] text-purple-600 dark:text-purple-400 font-extrabold uppercase tracking-wide block">Lock for Financial Goal Milestone (Optional)</span>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1.5">
@@ -1161,7 +1268,7 @@ const InvestmentsPage = () => {
                             <input 
                               type="text" 
                               placeholder="e.g. New SUV, Dream Home" 
-                              className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-xs border-none rounded-xl focus:ring-2 focus:ring-indigo-500"
+                              className="w-full px-4 py-2 bg-white dark:bg-slate-800/50 text-xs border-none rounded-xl focus:ring-2 focus:ring-indigo-500"
                               value={buyForm.goalName}
                               onChange={(e) => setBuyForm(p => ({ ...p, goalName: e.target.value }))}
                             />
@@ -1171,7 +1278,7 @@ const InvestmentsPage = () => {
                             <input 
                               type="number" 
                               placeholder="e.g. 1500000" 
-                              className="w-full px-4 py-2 bg-white dark:bg-slate-900 text-xs border-none rounded-xl focus:ring-2 focus:ring-indigo-500"
+                              className="w-full px-4 py-2 bg-white dark:bg-slate-800/50 text-xs border-none rounded-xl focus:ring-2 focus:ring-indigo-500"
                               value={buyForm.goalTarget}
                               onChange={(e) => setBuyForm(p => ({ ...p, goalTarget: e.target.value }))}
                             />

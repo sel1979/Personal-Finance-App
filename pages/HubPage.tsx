@@ -29,7 +29,7 @@ const HubPage = () => {
   const { 
     settings, updateSettings, transactions, investments, budgets, 
     gmailBackups, triggerGmailBackup, restoreFromGmail, signedUser, doSignOut, 
-    formatMoney 
+    formatMoney, accounts
   } = useAppState();
   
   const navigate = useNavigate();
@@ -43,7 +43,17 @@ const HubPage = () => {
       .reduce((acc, t) => acc + t.amount, 0);
   }, [transactions]);
 
-  const activeAssets = investments.length;
+  const totalIncome = useMemo(() => {
+    return transactions
+      .filter(t => t.type === 'income')
+      .reduce((acc, t) => acc + t.amount, 0);
+  }, [transactions]);
+  
+  const trueNetWorth = useMemo(() => {
+    const mockCashBalance = (accounts || []).reduce((sum, a) => sum + a.balance, 0);
+    const investmentsCurrentValue = investments.reduce((acc, inv) => acc + (inv.quantity * inv.currentPrice), 0);
+    return mockCashBalance + investmentsCurrentValue;
+  }, [accounts, investments]);
 
   // Handle manual Gmail backup creation
   const handleGmailBackup = () => {
@@ -91,18 +101,22 @@ const HubPage = () => {
         </div>
 
         {/* Financial Stat Pills Row */}
-        <div className="relative z-10 grid grid-cols-3 gap-2 mt-6 pt-4 border-t border-white/10 text-center font-mono">
+        <div className="relative z-10 grid grid-cols-4 gap-2 mt-6 pt-4 border-t border-white/10 text-center font-mono">
           <div>
-            <p className="text-[10px] text-indigo-100 font-bold uppercase tracking-wider">Total Spent</p>
-            <p className="text-sm font-black mt-0.5">{formatMoney(totalSpent)}</p>
+            <p className="text-[9px] text-indigo-100 font-bold uppercase tracking-wider truncate px-1">Net Worth</p>
+            <p className="text-xs sm:text-sm font-black mt-0.5 truncate text-green-300">{formatMoney(trueNetWorth)}</p>
           </div>
           <div>
-            <p className="text-[10px] text-indigo-100 font-bold uppercase tracking-wider">My Portfolio</p>
-            <p className="text-sm font-black mt-0.5">{activeAssets} Assets</p>
+            <p className="text-[9px] text-indigo-100 font-bold uppercase tracking-wider truncate px-1">Income</p>
+            <p className="text-xs sm:text-sm font-black mt-0.5 truncate">{formatMoney(totalIncome)}</p>
           </div>
           <div>
-            <p className="text-[10px] text-indigo-100 font-bold uppercase tracking-wider">Active Budgets</p>
-            <p className="text-sm font-black mt-0.5">{budgets.length} Items</p>
+            <p className="text-[9px] text-indigo-100 font-bold uppercase tracking-wider truncate px-1">Expenses</p>
+            <p className="text-xs sm:text-sm font-black mt-0.5 truncate">{formatMoney(totalSpent)}</p>
+          </div>
+          <div>
+            <p className="text-[9px] text-indigo-100 font-bold uppercase tracking-wider truncate px-1">Budgets</p>
+            <p className="text-xs sm:text-sm font-black mt-0.5 truncate">{budgets.length} Items</p>
           </div>
         </div>
 
@@ -112,8 +126,8 @@ const HubPage = () => {
       </div>
 
       {/* Gmail Synced Backups & Restore Hub */}
-      <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-5 rounded-3xl shadow-sm space-y-4">
-        <div className="flex justify-between items-center pb-2 border-b dark:border-slate-800/80">
+      <div className="bg-white dark:bg-slate-800 border dark:border-slate-700 p-5 rounded-3xl shadow-sm space-y-4">
+        <div className="flex justify-between items-center pb-2 border-b dark:border-slate-700/50/80">
           <div>
             <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
               <UploadCloud className="text-indigo-600" size={18} />
@@ -159,7 +173,7 @@ const HubPage = () => {
               <button 
                 type="button"
                 onClick={() => handleRestore(bkp.id)}
-                className="py-1.5 px-3 bg-white dark:bg-slate-850 hover:bg-slate-100 border dark:border-slate-800 text-slate-850 dark:text-slate-200 font-extrabold text-[10px] uppercase rounded-lg shadow-xs flex items-center gap-1 cursor-pointer"
+                className="py-1.5 px-3 bg-white dark:bg-slate-850 hover:bg-slate-100 border dark:border-slate-700/50 text-slate-850 dark:text-slate-200 font-extrabold text-[10px] uppercase rounded-lg shadow-xs flex items-center gap-1 cursor-pointer"
               >
                 <Download size={12} /> Restore
               </button>
@@ -180,7 +194,7 @@ const HubPage = () => {
       <div className="grid grid-cols-2 gap-4">
         <div 
           onClick={() => navigate('/budgets')}
-          className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-5 rounded-2xl flex flex-col justify-between h-32 shadow-sm relative group hover:border-indigo-500 transition-all duration-300 cursor-pointer"
+          className="bg-white dark:bg-slate-800/50 border dark:border-slate-700/50 p-5 rounded-2xl flex flex-col justify-between h-32 shadow-sm relative group hover:border-indigo-500 transition-all duration-300 cursor-pointer"
         >
           <div className="p-3 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-xl w-fit group-hover:bg-indigo-600 group-hover:text-white transition-all">
             <PieChart size={20} />
@@ -194,7 +208,7 @@ const HubPage = () => {
 
         <div 
           onClick={() => navigate('/settings')}
-          className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-5 rounded-2xl flex flex-col justify-between h-32 shadow-sm relative group hover:border-indigo-505 transition-all duration-300 cursor-pointer"
+          className="bg-white dark:bg-slate-800/50 border dark:border-slate-700/50 p-5 rounded-2xl flex flex-col justify-between h-32 shadow-sm relative group hover:border-indigo-505 transition-all duration-300 cursor-pointer"
         >
           <div className="p-3 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-xl w-fit group-hover:bg-emerald-600 group-hover:text-white transition-all">
             <Settings size={20} />
@@ -211,7 +225,7 @@ const HubPage = () => {
       <div className="space-y-4">
         <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Security Preferences</h4>
         
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border dark:border-slate-800 shadow-sm overflow-hidden divide-y dark:divide-slate-800/60">
+        <div className="bg-white dark:bg-slate-800/50 rounded-2xl border dark:border-slate-700/50 shadow-sm overflow-hidden divide-y dark:divide-slate-800/60">
           <div className="flex items-center justify-between p-4 flex-wrap gap-2">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl">

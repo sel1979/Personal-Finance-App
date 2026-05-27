@@ -17,14 +17,15 @@ import {
   Plus,
   Trash2,
   AlertTriangle,
-  BookOpen
+  BookOpen,
+  Bot
 } from 'lucide-react';
 import { CURRENCIES, PAYMENT_METHODS } from '../constants';
 
 const SettingGroup = ({ title, children }: any) => (
   <div className="space-y-4">
     <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">{title}</h3>
-    <div className="bg-white dark:bg-slate-950 rounded-2xl border border-gray-150 dark:border-slate-800 shadow-sm overflow-hidden divide-y divide-gray-100 dark:divide-slate-800">
+    <div className="bg-white dark:bg-slate-950 rounded-2xl border border-gray-150 dark:border-slate-700 shadow-sm overflow-hidden divide-y divide-gray-100 dark:divide-slate-800">
       {children}
     </div>
   </div>
@@ -255,7 +256,7 @@ const SettingsPage = () => {
       )}
 
       {/* Visual Portrait Profile Card Header */}
-      <div className="bg-white dark:bg-slate-950 border border-gray-150 dark:border-slate-800 rounded-3xl p-6 shadow-sm relative overflow-hidden text-left space-y-4">
+      <div className="bg-white dark:bg-slate-950 border border-gray-150 dark:border-slate-700/50 rounded-3xl p-6 shadow-sm relative overflow-hidden text-left space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 justify-between">
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-2xl bg-indigo-50 border border-indigo-150 overflow-hidden flex items-center justify-center relative shadow-sm group">
@@ -288,13 +289,13 @@ const SettingsPage = () => {
           App created by Selvam R @ 2026
         </div>
         {isProfileEditing && (
-          <form onSubmit={handleProfileSave} className="pt-4 border-t border-gray-100 dark:border-slate-800 space-y-4 animate-in slide-in-from-top-2 duration-200">
+          <form onSubmit={handleProfileSave} className="pt-4 border-t border-gray-100 dark:border-slate-700/50 space-y-4 animate-in slide-in-from-top-2 duration-200">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400">Owner Name</label>
                 <input 
                   type="text" required
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700/50 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-indigo-500"
                   value={nameInput}
                   onChange={e => setNameInput(e.target.value)}
                 />
@@ -303,7 +304,7 @@ const SettingsPage = () => {
                 <label className="text-[10px] font-black uppercase text-slate-400">Sync Email Address</label>
                 <input 
                   type="email" required
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700/50 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:ring-2 focus:ring-indigo-500"
                   value={emailInput}
                   onChange={e => setEmailInput(e.target.value)}
                 />
@@ -314,7 +315,7 @@ const SettingsPage = () => {
               <label className="text-[10px] font-black uppercase text-slate-400">Account Bio / Description</label>
               <textarea 
                 rows={2} required
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700/50 rounded-xl text-xs text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-indigo-500"
                 value={bioInput}
                 onChange={e => setBioInput(e.target.value)}
               />
@@ -329,6 +330,17 @@ const SettingsPage = () => {
           </form>
         )}
       </div>
+
+      {/* Personal AI Assistant Link */}
+      <SettingGroup title="Wealth & Advisory">
+        <SettingRow 
+          icon={Bot} 
+          label="Personal AI Assistant" 
+          value="Insights & Predictions"
+          onClick={() => { window.location.hash = '#/ai-insights'; }}
+          colorClass="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600"
+        />
+      </SettingGroup>
 
       {/* Account & Localization Segment */}
       <SettingGroup title="Personalization & Security">
@@ -361,7 +373,7 @@ const SettingsPage = () => {
 
           {/* Setup Password Screen panel */}
           {showPasscodeField && (
-            <form onSubmit={handleSaveUnlockPIN} className="text-left pt-3 border-t border-dashed border-gray-100 dark:border-slate-800 space-y-2.5 animate-in slide-in-from-top-2 duration-150">
+            <form onSubmit={handleSaveUnlockPIN} className="text-left pt-3 border-t border-dashed border-gray-100 dark:border-slate-700/50 space-y-2.5 animate-in slide-in-from-top-2 duration-150">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Set 4-Digit Security PIN</label>
               <div className="flex gap-3 max-w-sm">
                 <input 
@@ -422,7 +434,7 @@ const SettingsPage = () => {
       {/* Categories configuration */}
       <div className="space-y-4">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Categories Configuration</h3>
-        <div className="bg-white dark:bg-slate-950 rounded-2xl border border-gray-150 dark:border-slate-800 p-6 shadow-sm space-y-6">
+        <div className="bg-white dark:bg-slate-950 rounded-2xl border border-gray-150 dark:border-slate-700/50 p-6 shadow-sm space-y-6">
           <div className="text-left">
             <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Custom Income Categories</h4>
             <div className="flex flex-wrap gap-2 mb-4">
@@ -446,7 +458,7 @@ const SettingsPage = () => {
                 type="text" 
                 id="add-inc-setting"
                 placeholder="Type custom category..." 
-                className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-gray-150 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-gray-150 dark:border-slate-700/50 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     const val = e.currentTarget.value.trim();
@@ -472,7 +484,7 @@ const SettingsPage = () => {
             </div>
           </div>
 
-          <div className="border-t border-gray-100 dark:border-slate-800 pt-6 text-left">
+          <div className="border-t border-gray-100 dark:border-slate-700/50 pt-6 text-left">
             <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Custom Expense Categories</h4>
             <div className="flex flex-wrap gap-2 mb-4">
               {expenseCategories.map(cat => (
@@ -494,7 +506,7 @@ const SettingsPage = () => {
                 type="text" 
                 id="add-exp-setting"
                 placeholder="Type custom category..." 
-                className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-gray-150 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-gray-150 dark:border-slate-700/50 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     const val = e.currentTarget.value.trim();
@@ -525,7 +537,7 @@ const SettingsPage = () => {
       {/* Dynamic Accounts Manager */}
       <div className="space-y-4">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Configure Accounts & Wallets</h3>
-        <div className="bg-white dark:bg-slate-950 rounded-2xl border border-gray-150 dark:border-slate-800 p-6 shadow-sm space-y-6 text-left">
+        <div className="bg-white dark:bg-slate-950 rounded-2xl border border-gray-150 dark:border-slate-700/50 p-6 shadow-sm space-y-6 text-left">
           
           {/* Active wallets grid */}
           <div className="space-y-3">
@@ -539,7 +551,7 @@ const SettingsPage = () => {
                 else if (acc.type === 'bank') badgeColor = "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300";
 
                 return (
-                  <div key={acc.id} className="p-4 rounded-xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/50 flex flex-col justify-between space-y-2.5">
+                  <div key={acc.id} className="p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 bg-gray-50 dark:bg-slate-900/50 flex flex-col justify-between space-y-2.5">
                     <div className="flex items-start justify-between">
                       <div>
                         <span className="font-extrabold text-sm text-slate-950 dark:text-white block">{acc.name}</span>
@@ -562,7 +574,7 @@ const SettingsPage = () => {
           </div>
 
           {/* Account Form with Opening Balance triggers */}
-          <div className="border-t border-gray-100 dark:border-slate-800 pt-6">
+          <div className="border-t border-gray-100 dark:border-slate-700/50 pt-6">
             <h4 className="text-xs font-black text-slate-550 uppercase tracking-wider mb-4">Create New Account with Opening Balance</h4>
             <form onSubmit={handleCreateAccount} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -574,7 +586,7 @@ const SettingsPage = () => {
                     placeholder="e.g. Axis Salary Bank"
                     value={newAccName}
                     onChange={e => setNewAccName(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-250 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-505"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-250 dark:border-slate-700/50 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-505"
                   />
                 </div>
                 <div className="space-y-1">
@@ -582,7 +594,7 @@ const SettingsPage = () => {
                   <select
                     value={newAccType}
                     onChange={e => setNewAccType(e.target.value as any)}
-                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-250 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-505"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-250 dark:border-slate-700/50 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-505"
                   >
                     <option value="bank">Bank Account</option>
                     <option value="cash">Cash Wallet</option>
@@ -603,7 +615,7 @@ const SettingsPage = () => {
                     placeholder="e.g. 25000 (negative if debt e.g. -5000)"
                     value={newAccBalance}
                     onChange={e => setNewAccBalance(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-250 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-505"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-250 dark:border-slate-700/50 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-505"
                   />
                 </div>
                 <div className="space-y-1">
@@ -613,7 +625,7 @@ const SettingsPage = () => {
                     placeholder="e.g. UPI account/IFSC ID"
                     value={newAccNumber}
                     onChange={e => setNewAccNumber(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-250 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-505 animate-in"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-250 dark:border-slate-700/50 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-505 animate-in"
                   />
                 </div>
               </div>
@@ -677,7 +689,7 @@ const SettingsPage = () => {
           </div>
 
           {/* Bulk Import from CSV Panel */}
-          <div className="border-t border-gray-100 dark:border-slate-800 pt-3.5 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div className="border-t border-gray-100 dark:border-slate-700/50 pt-3.5 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
             <div className="space-y-0.5">
               <span className="font-bold text-slate-900 dark:text-white text-sm block">Import CSV Ledger</span>
               <span className="text-[10px] text-slate-400 block leading-tight">
@@ -696,7 +708,7 @@ const SettingsPage = () => {
             </label>
           </div>
 
-          <div className="border-t border-gray-100 dark:border-slate-800 pt-3.5 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div className="border-t border-gray-100 dark:border-slate-700/50 pt-3.5 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
             <div className="space-y-0.5">
               <span className="font-bold text-slate-900 dark:text-white text-sm block">Restore System State</span>
               <span className="text-[10px] text-slate-400 block leading-tight">Sync back completely to a JSON snapshot profile</span>

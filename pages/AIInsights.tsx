@@ -220,13 +220,14 @@ const AIInsights = () => {
       </div>
 
       {/* Modern Material 3 Rounded Tab Controllers */}
-      <div className="flex bg-neutral-100 dark:bg-slate-900 p-1 rounded-2xl border dark:border-slate-800 gap-1 sm:gap-2">
+      <div className="flex bg-neutral-100 dark:bg-slate-900 p-1 rounded-2xl border dark:border-slate-700 gap-1 sm:gap-2">
         <button
           onClick={() => setActiveTab('insights')}
           className={`flex-1 py-3 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-1.5 ${activeTab === 'insights' ? 'bg-white dark:bg-slate-850 text-indigo-650 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-850'}`}
         >
           <Lightbulb size={15} />
-          <span>Smart Insights</span>
+          <span className="hidden sm:inline">Portfolio Risk Analyzer</span>
+          <span className="sm:hidden">Risk</span>
         </button>
 
         <button
@@ -234,7 +235,8 @@ const AIInsights = () => {
           className={`flex-1 py-3 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-1.5 ${activeTab === 'chat' ? 'bg-white dark:bg-slate-850 text-indigo-650 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-850'}`}
         >
           <Bot size={15} />
-          <span>Chatbot Assistant</span>
+          <span className="hidden sm:inline">AI Chat Assistant</span>
+          <span className="sm:hidden">Chat</span>
         </button>
 
         <button
@@ -242,7 +244,8 @@ const AIInsights = () => {
           className={`flex-1 py-3 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-1.5 ${activeTab === 'predictions' ? 'bg-white dark:bg-slate-850 text-indigo-650 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-850'}`}
         >
           <TrendingUp size={15} />
-          <span>Smart Predictions</span>
+          <span className="hidden sm:inline">Spending Predictions</span>
+          <span className="sm:hidden">Predict</span>
         </button>
       </div>
 
@@ -250,11 +253,11 @@ const AIInsights = () => {
 
       {/* VIEW: INSIGHTS GENERATOR */}
       {activeTab === 'insights' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-4.5 rounded-2xl border dark:border-slate-800">
+        <div className="space-y-6 mt-4">
+          <div className="flex justify-between items-center bg-white dark:bg-slate-800 p-4.5 rounded-2xl border dark:border-slate-700/50">
             <div>
-              <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">Intelligent Portfolio Analysis</h3>
-              <p className="text-[10px] text-slate-400 font-medium">Auto-scrapes manual transaction ledger and mutual funds listings</p>
+              <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">AI Portfolio Risk Analyzer</h3>
+              <p className="text-[10px] text-slate-400 font-medium">Detects sector concentration and diversification exposure</p>
             </div>
             <button
               onClick={generateInsights}
@@ -262,7 +265,7 @@ const AIInsights = () => {
               className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black p-2.5 px-4 rounded-xl flex items-center gap-1.5 disabled:opacity-50 transition-all shadow-sm"
             >
               {insightsLoading ? <RefreshCw size={13} className="animate-spin" /> : <Sparkles size={13} />}
-              <span>{insightsLoading ? 'Analyzing...' : 'Generate Insights'}</span>
+              <span>{insightsLoading ? 'Analyzing...' : 'Run Analysis'}</span>
             </button>
           </div>
 
@@ -274,7 +277,7 @@ const AIInsights = () => {
           )}
 
           {insightsData.length === 0 && !insightsLoading ? (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border dark:border-slate-800 max-w-xl mx-auto flex flex-col items-center gap-4">
+            <div className="bg-white dark:bg-slate-800/50 rounded-3xl p-12 text-center border dark:border-slate-700/50 max-w-xl mx-auto flex flex-col items-center gap-4">
               <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 rounded-full flex items-center justify-center">
                 <BrainCircuit size={28} />
               </div>
@@ -286,7 +289,7 @@ const AIInsights = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {insightsData.map((item, index) => (
-                <div key={index} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-indigo-200 transition-all">
+                <div key={index} className="bg-white dark:bg-slate-800/50 p-5 rounded-2xl border dark:border-slate-700/50 shadow-sm flex flex-col justify-between hover:border-indigo-200 transition-all">
                   <div className="flex gap-4 items-start">
                     <div className="w-11 h-11 bg-slate-50 dark:bg-slate-950/50 rounded-xl border dark:border-slate-850 flex items-center justify-center shrink-0">
                       {getIcon(item.iconType)}
@@ -305,9 +308,9 @@ const AIInsights = () => {
 
       {/* VIEW: INTERACTIVE CHATBOT */}
       {activeTab === 'chat' && (
-        <div className="bg-white dark:bg-slate-905 border dark:border-slate-800 rounded-3xl overflow-hidden flex flex-col h-[520px] shadow-sm">
+        <div className="bg-white dark:bg-slate-905 border dark:border-slate-700/50 rounded-3xl overflow-hidden flex flex-col h-[520px] shadow-sm">
           {/* Conversation log head */}
-          <div className="p-4 px-5 border-b dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-950/20">
+          <div className="p-4 px-5 border-b dark:border-slate-700/50 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-950/20">
             <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></span>
             <div>
               <h3 className="font-bold text-xs text-slate-950 dark:text-white">Finance AI Assistant</h3>
@@ -327,7 +330,7 @@ const AIInsights = () => {
 
                   <div className="space-y-1">
                     <span className="text-[8px] text-slate-400 font-bold block">{msg.time}</span>
-                    <div className={`p-3.5 rounded-2xl text-xs leading-relaxed font-sans ${bot ? 'bg-neutral-50 dark:bg-slate-900 border dark:border-slate-800/80 text-slate-850 dark:text-slate-100 rounded-tl-none whitespace-pre-wrap' : 'bg-indigo-600 text-white rounded-tr-none'}`}>
+                    <div className={`p-3.5 rounded-2xl text-xs leading-relaxed font-sans ${bot ? 'bg-neutral-50 dark:bg-slate-900 border dark:border-slate-700/50/80 text-slate-850 dark:text-slate-100 rounded-tl-none whitespace-pre-wrap' : 'bg-indigo-600 text-white rounded-tr-none'}`}>
                       {msg.text}
                     </div>
                   </div>
@@ -353,13 +356,13 @@ const AIInsights = () => {
           </div>
 
           {/* Send Input Bar Form */}
-          <form onSubmit={handleSendMessage} className="p-3 bg-slate-50/50 dark:bg-slate-950/20 border-t dark:border-slate-800 flex gap-2">
+          <form onSubmit={handleSendMessage} className="p-3 bg-slate-50/50 dark:bg-slate-950/20 border-t dark:border-slate-700/50 flex gap-2">
             <input
               type="text"
               placeholder="Ask Finance AI... e.g., 'What is my current mutual fund gain percent?'"
               value={chatMessage}
               onChange={e => setChatMessage(e.target.value)}
-              className="flex-1 px-4 py-3 bg-white dark:bg-slate-900 text-xs border dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 text-slate-850 dark:text-white"
+              className="flex-1 px-4 py-3 bg-white dark:bg-slate-800/50 text-xs border dark:border-slate-700/50 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 text-slate-850 dark:text-white"
             />
             <button
               type="submit"
@@ -375,7 +378,7 @@ const AIInsights = () => {
       {/* VIEW: PREDICTIONS & COMPOUND TIMELINES */}
       {activeTab === 'predictions' && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-4.5 rounded-2xl border dark:border-slate-800">
+          <div className="flex justify-between items-center bg-white dark:bg-slate-800/50 p-4.5 rounded-2xl border dark:border-slate-700/50">
             <div>
               <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">Forward Compound Predictions</h3>
               <p className="text-[10px] text-slate-400 font-medium">Auto-projects 12-month metrics using constant linear & exponential compounding</p>
@@ -398,7 +401,7 @@ const AIInsights = () => {
           )}
 
           {predictionsData.length === 0 && !predictionsLoading ? (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border dark:border-slate-800 max-w-xl mx-auto flex flex-col items-center gap-4">
+            <div className="bg-white dark:bg-slate-800/50 rounded-3xl p-12 text-center border dark:border-slate-700/50 max-w-xl mx-auto flex flex-col items-center gap-4">
               <div className="w-14 h-14 bg-purple-50 dark:bg-purple-950/40 text-purple-600 rounded-full flex items-center justify-center">
                 <Target size={28} />
               </div>
@@ -411,7 +414,7 @@ const AIInsights = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {predictionsData.map((item, index) => (
-                  <div key={index} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-purple-200 transition-all text-left">
+                  <div key={index} className="bg-white dark:bg-slate-800/50 p-5 rounded-2xl border dark:border-slate-700/50 shadow-sm flex flex-col justify-between hover:border-purple-200 transition-all text-left">
                     <div className="space-y-2">
                       <div className="flex justify-between items-start">
                         <span className="text-[9px] uppercase tracking-wider font-extrabold text-purple-600 bg-purple-50 dark:bg-purple-950/40 px-2 py-0.5 rounded-md">

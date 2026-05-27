@@ -278,10 +278,10 @@ const ReportsPage = () => {
       </div>
 
       {/* Interactive Horizon Timeline Filter Card */}
-      <div className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 p-5 rounded-3xl shadow-sm text-left space-y-4">
+      <div className="bg-white dark:bg-slate-800 border border-gray-150 dark:border-slate-700 p-5 rounded-3xl shadow-sm text-left space-y-4">
         <div className="flex flex-col space-y-3.5">
           <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Select Reporting Horizon</label>
-          <div className="bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl flex gap-1.5 overflow-x-auto self-start">
+          <div className="bg-slate-100 dark:bg-slate-950 p-1.5 rounded-2xl flex gap-1.5 overflow-x-auto w-full hide-scrollbar relative">
             {[
               { id: 'weekly', label: 'Weekly Trend' },
               { id: 'monthly', label: 'Monthly Trend' },
@@ -291,7 +291,7 @@ const ReportsPage = () => {
               <button
                 key={p.id}
                 onClick={() => setPeriodType(p.id as any)}
-                className={`py-2 px-4 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`flex-1 min-w-[100px] shrink-0 py-2.5 px-3 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer ${
                   periodType === p.id 
                     ? 'bg-indigo-600 text-white shadow' 
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -309,7 +309,7 @@ const ReportsPage = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="grid grid-cols-2 gap-4 pt-2 border-t border-dashed border-gray-200 dark:border-slate-800"
+            className="grid grid-cols-2 gap-4 pt-2 border-t border-dashed border-gray-200 dark:border-slate-700/50"
           >
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">From (Beginning Date)</label>
@@ -318,7 +318,7 @@ const ReportsPage = () => {
                 required
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-700/50 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             
@@ -329,7 +329,7 @@ const ReportsPage = () => {
                 required
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-700/50 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </motion.div>
@@ -339,7 +339,7 @@ const ReportsPage = () => {
       {/* Aggregate Financial Metrics Panel with pristine readability */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Inflow */}
-        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-4 rounded-2xl shadow-sm text-left min-w-0">
+        <div className="bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50 p-4 rounded-2xl shadow-sm text-left min-w-0">
           <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wider block truncate pr-1">Inflow Volume</span>
           <div className="flex items-center gap-1 mt-2">
             <span className="p-1 green-text-badge bg-green-50 dark:bg-green-950/40 text-green-600 rounded-lg shrink-0">
@@ -352,7 +352,7 @@ const ReportsPage = () => {
         </div>
 
         {/* Total Outflow */}
-        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-4 rounded-2xl shadow-sm text-left min-w-0">
+        <div className="bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50 p-4 rounded-2xl shadow-sm text-left min-w-0">
           <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wider block truncate pr-1">Outflow Volume</span>
           <div className="flex items-center gap-1 mt-2">
             <span className="p-1 red-text-badge bg-red-50 dark:bg-red-950/40 text-red-600 rounded-lg shrink-0">
@@ -365,7 +365,7 @@ const ReportsPage = () => {
         </div>
 
         {/* Savings Volume */}
-        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-4 rounded-2xl shadow-sm text-left min-w-0">
+        <div className="bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50 p-4 rounded-2xl shadow-sm text-left min-w-0">
           <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wider block pr-1 truncate">Periodic Savings</span>
           <div className="mt-2 text-base md:text-lg font-black block truncate text-slate-950 dark:text-white">
             <span className={metrics.netSavings >= 0 ? 'text-green-650' : 'text-red-655'}>
@@ -375,7 +375,7 @@ const ReportsPage = () => {
         </div>
 
         {/* Savings Efficiency Rate Indicator */}
-        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-4 rounded-2xl shadow-sm text-left min-w-0">
+        <div className="bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50 p-4 rounded-2xl shadow-sm text-left min-w-0">
           <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wider block pr-1 truncate">Savings Efficiency</span>
           <div className="mt-2 text-base md:text-lg font-black block truncate text-indigo-600 dark:text-indigo-400">
             {metrics.savingsRate.toFixed(1)}% <span className="text-[9px] md:text-[10px] font-medium text-slate-400">rate</span>
@@ -384,7 +384,7 @@ const ReportsPage = () => {
       </div>
 
       {/* Main Bar/Area Chart displaying Progressive Trends over Selected Range */}
-      <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm text-left flex flex-col space-y-4">
+      <div className="bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50 p-6 rounded-3xl shadow-sm text-left flex flex-col space-y-4">
         <div>
           <h3 className="font-extrabold text-sm text-slate-950 dark:text-white">Trend Analysis Flowchart</h3>
           <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Cash inflows mapped side-by-side against structural expenditures</p>
@@ -425,7 +425,7 @@ const ReportsPage = () => {
       {/* Categories Breakdown List view */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
         {/* Expenditure categories breakdown */}
-        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm">
+        <div className="bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50 p-6 rounded-3xl shadow-sm">
           <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-50">
             <div>
               <h4 className="font-extrabold text-sm text-slate-950 dark:text-white">Outflow Breakdown</h4>
@@ -460,7 +460,7 @@ const ReportsPage = () => {
         </div>
 
         {/* Income categories breakdown */}
-        <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm">
+        <div className="bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50 p-6 rounded-3xl shadow-sm">
           <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-50">
             <div>
               <h4 className="font-extrabold text-sm text-slate-950 dark:text-white">Inflow Breakdown</h4>

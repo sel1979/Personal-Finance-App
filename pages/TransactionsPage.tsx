@@ -76,7 +76,7 @@ const MiniKeypadCalculator = ({ onApply, onClose, formatMoney }: { onApply: (val
       </div>
       
       {/* Display bar */}
-      <div className="bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-2.5 rounded-xl text-right overflow-hidden min-h-[46px] flex flex-col justify-between">
+      <div className="bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 p-2.5 rounded-xl text-right overflow-hidden min-h-[46px] flex flex-col justify-between">
         <div className="text-[9px] font-semibold text-slate-400 truncate tracking-wide" style={{ minHeight: '12px' }}>
           {history[history.length - 1] || 'No calculation logged'}
         </div>
@@ -89,7 +89,7 @@ const MiniKeypadCalculator = ({ onApply, onClose, formatMoney }: { onApply: (val
       <div className="grid grid-cols-4 gap-2">
         {keys.map((row) => (
           row.map((btn) => {
-            let color = 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100';
+            let color = 'bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100';
             if (btn === '=') color = 'bg-indigo-600 hover:bg-indigo-700 text-white font-black';
             else if (['/', '*', '-', '+'].includes(btn)) color = 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-650 dark:text-indigo-400 font-black';
             
@@ -139,13 +139,15 @@ const TransactionsPage = () => {
   const { 
     transactions, addTransaction, deleteTransaction, 
     accounts = [],
-    incomeCategories, expenseCategories, addIncomeCategory, addExpenseCategory, formatMoney 
+    incomeCategories, expenseCategories, addIncomeCategory, addExpenseCategory, formatMoney,
+    recurringTransactions, toggleRecurringTransaction
   } = useAppState();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [showCalculator, setShowCalculator] = useState(false);
+  const [activeView, setActiveView] = useState<'transactions' | 'recurring'>('transactions');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -232,21 +234,40 @@ const TransactionsPage = () => {
           <h2 className="text-2xl font-bold tracking-tight">Transactions</h2>
           <p className="text-gray-500">Track and manage your daily income and expenses.</p>
         </div>
-        <button 
-          onClick={() => {
-            setFormData(p => ({
-              ...p,
-              category: p.type === 'expense' ? expenseCategories[0] || 'Food' : incomeCategories[0] || 'Salary'
-            }));
-            setIsModalOpen(true);
-          }}
-          className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
-        >
-          <Plus size={20} />
-          <span>New Transaction</span>
-        </button>
+        <div className="flex gap-2">
+          <div className="p-1 bg-white border border-gray-100 dark:border-slate-800 dark:bg-slate-900 rounded-xl flex gap-1 shadow-sm">
+            <button 
+              onClick={() => setActiveView('transactions')}
+              className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${activeView === 'transactions' ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}
+            >
+              Ledger
+            </button>
+            <button 
+              onClick={() => setActiveView('recurring')}
+              className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${activeView === 'recurring' ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}
+            >
+              Recurring Bills
+            </button>
+          </div>
+          <button 
+            onClick={() => {
+              setFormData(p => ({
+                ...p,
+                category: p.type === 'expense' ? expenseCategories[0] || 'Food' : incomeCategories[0] || 'Salary'
+              }));
+              setIsModalOpen(true);
+            }}
+            className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 shrink-0"
+          >
+            <Plus size={20} />
+            <span className="hidden sm:inline">New Transaction</span>
+            <span className="sm:hidden">New</span>
+          </button>
+        </div>
       </div>
 
+      {activeView === 'transactions' ? (
+      <>
       {/* Filters & Search */}
       <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
@@ -284,7 +305,7 @@ const TransactionsPage = () => {
       </div>
 
       {/* Transaction List */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 shadow-sm overflow-hidden flex flex-col space-y-0">
+      <div className="bg-white dark:bg-slate-800/50 rounded-3xl border dark:border-slate-700/50 shadow-sm overflow-hidden flex flex-col space-y-0">
         {filteredTransactions.length === 0 ? (
           <div className="p-16 flex flex-col items-center gap-4 text-slate-500 dark:text-slate-400">
             <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-2">
@@ -295,7 +316,7 @@ const TransactionsPage = () => {
           </div>
         ) : (
           filteredTransactions.map((t) => (
-            <div key={t.id} className="flex items-center justify-between p-4 md:px-6 md:py-5 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors group">
+            <div key={t.id} className="flex items-center justify-between p-4 md:px-6 md:py-5 border-b border-slate-100 dark:border-slate-700/50/50 hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors group">
               <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
                 <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 ${
                   t.type === 'transfer' ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' :
@@ -341,6 +362,48 @@ const TransactionsPage = () => {
           ))
         )}
       </div>
+      </>
+      ) : (
+        <div className="bg-white dark:bg-slate-800/50 rounded-3xl border dark:border-slate-700/50 shadow-sm overflow-hidden flex flex-col space-y-0 p-5 md:p-8">
+           <h3 className="font-black text-xl mb-1 text-slate-900 dark:text-white">Active Recurring Mandates</h3>
+           <p className="text-xs text-slate-500 mb-6 font-medium">Automatic billing cycles setup. They evaluate processing limits instantly on user access.</p>
+           
+           <div className="grid gap-3">
+              {recurringTransactions.length === 0 ? (
+                 <div className="text-center py-12 text-slate-500"><p>No recurring bills active.</p></div>
+              ) : recurringTransactions.map(rt => {
+                 let status = 'Inactive';
+                 if (rt.active) status = 'Active';
+                 const badgeColor = rt.active ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400' : 'bg-slate-100 text-slate-500';
+
+                 return (
+                   <div key={rt.id} className="border dark:border-slate-700 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-50 flex-wrap dark:bg-slate-900/50 hover:border-indigo-200 transition-colors">
+                      <div className="flex flex-col">
+                         <span className={`text-[9px] w-max font-black uppercase tracking-widest px-2 py-0.5 rounded ${badgeColor}`}>{status}</span>
+                         <h4 className="font-bold text-lg text-slate-900 dark:text-white mt-1.5">{rt.description}</h4>
+                         <p className="text-xs text-slate-400 font-medium">Runs {rt.frequency} • Next: <span className="text-slate-700 dark:text-slate-300 font-bold">{rt.nextDate}</span></p>
+                      </div>
+                      <div className="flex gap-4 items-center w-full md:w-auto mt-2 md:mt-0">
+                         <div className="text-left md:text-right flex-1 md:flex-none">
+                            <span className={`block font-black text-lg ${rt.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>{rt.type === 'income' ? '+' : '-'}{formatMoney(rt.amount)}</span>
+                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">{rt.category}</span>
+                         </div>
+                         <div className="shrink-0 flex gap-2 ml-auto">
+                             <button
+                               onClick={() => toggleRecurringTransaction(rt.id, !rt.active)}
+                               className={`p-2 border dark:border-slate-700 rounded-lg transition-colors shadow-sm cursor-pointer ${rt.active ? 'bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50' : 'bg-white dark:bg-slate-800 hover:bg-slate-50'}`}
+                               title={rt.active ? "Pause" : "Resume"}
+                             >
+                                <span className={`text-xs font-black px-1 ${rt.active ? 'text-indigo-600' : 'text-slate-400'}`}>{rt.active ? 'Pause' : 'Resume'}</span>
+                             </button>
+                         </div>
+                      </div>
+                   </div>
+                 );
+              })}
+           </div>
+        </div>
+      )}
 
       {/* Add Transaction Modal */}
       {isModalOpen && (

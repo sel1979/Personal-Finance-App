@@ -67,6 +67,21 @@ export interface InvestmentTransaction {
   profitLoss?: number;
 }
 
+export interface RecurringTransaction {
+  id: string;
+  type: TransactionType;
+  amount: number;
+  category: string;
+  description: string;
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  startDate: string;
+  nextDate: string;
+  accountId?: string;
+  paymentMethod: string;
+  lastProcessed?: string;
+  active: boolean;
+}
+
 export interface BudgetCategory {
   category: string;
   budgetAmount: number;

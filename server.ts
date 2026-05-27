@@ -32,7 +32,7 @@ function getGeminiClient(): GoogleGenAI {
 // SECURE SERVER-SIDE GEMINI ENDPOINTS
 // -------------------------------------------------------------
 
-// 1. AI Insights structured endpoint
+// 1. AI Insights & Risk Analyzer structured endpoint
 app.post("/api/gemini/insights", async (req, res) => {
   try {
     const ai = getGeminiClient();
@@ -41,13 +41,15 @@ app.post("/api/gemini/insights", async (req, res) => {
     const prompt = `
       You are an elite, highly professional AI Financial Advisor called "Finance AI".
       Based on the following JSON financial summary of the user, provide 4 actionable and highly specific custom recommendations or insights.
+      Focus heavily on "PORTFOLIO RISK ANALYSIS".
+      Detect sector concentration, diversification, risk exposure, volatility, and budget risks.
       
       User Data:
       ${JSON.stringify(summary, null, 2)}
       
       Generate a valid JSON array of objects representing these insights. Each object must have fields:
-      - title: A highly punchy title
-      - description: Actionable professional advice with numbers if relevant
+      - title: A highly punchy title (e.g. "High Sector Concentration", "Low Diversification Risk")
+      - description: Actionable professional advice with numbers if relevant. E.g. "Your portfolio is heavily concentrated in banking sector."
       - iconType: One of: 'saving', 'investing', 'alert', 'growth'
     `;
 

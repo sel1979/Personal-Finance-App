@@ -93,6 +93,10 @@ interface AppState {
   triggerGmailBackup: (email: string) => void;
   restoreFromGmail: (id: string) => boolean;
   importLocalBackup: (jsonData: string) => boolean;
+  recurringTransactions: RecurringTransaction[];
+  addRecurringTransaction: (rt: Omit<RecurringTransaction, 'id' | 'lastProcessed'>) => void;
+  deleteRecurringTransaction: (id: string) => void;
+  toggleRecurringTransaction: (id: string, active: boolean) => void;
 }
 
 const AppContext = createContext<AppState | undefined>(undefined);
@@ -215,6 +219,14 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     ];
   });
 
+  const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>(() => {
+    const saved = localStorage.getItem('wf_recurring_tx');
+    return saved ? JSON.parse(saved) : [
+       { id: 'rt1', type: 'expense', amount: 15000, category: 'Housing', description: 'Rent', frequency: 'monthly', startDate: '2026-05-01', nextDate: '2026-06-01', paymentMethod: 'Bank Transfer', active: true },
+       { id: 'rt2', type: 'expense', amount: 899, category: 'Entertainment', description: 'Netflix', frequency: 'monthly', startDate: '2026-05-15', nextDate: '2026-06-15', paymentMethod: 'Credit Card', active: true }
+    ];
+  });
+
   // Keep saved credentials mock
   useEffect(() => {
     localStorage.setItem('wf_transactions', JSON.stringify(transactions));
@@ -226,6 +238,7 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     localStorage.setItem('wf_custom_expense_cats', JSON.stringify(expenseCategories));
     localStorage.setItem('wf_gmail_backups', JSON.stringify(gmailBackups));
     localStorage.setItem('wf_accounts', JSON.stringify(accounts));
+    localStorage.setItem('wf_recurring_tx', JSON.stringify(recurringTransactions));
     if (signedUser) {
       localStorage.setItem('wf_signed_user', JSON.stringify(signedUser));
     } else {
@@ -614,6 +627,68 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const updateSettings = (s: UserSettings) => setSettings(s);
 
+  const addRecurringTransaction = (rt: Omit<RecurringTransaction, 'id' | 'lastProcessed'>) => {
+    setRecurringTransactions(prev => [{ ...rt, id: crypto.randomUUID(), lastProcessed: undefined }, ...prev]);
+  };
+
+  const deleteRecurringTransaction = (id: string) => {
+    setRecurringTransactions(prev => prev.filter(rt => rt.id !== id));
+  };
+
+  const toggleRecurringTransaction = (id: string, active: boolean) => {
+    setRecurringTransactions(prev => prev.map(rt => rt.id === id ? { ...rt, active } : rt));
+  };
+
+  // Basic check on load to see if any recurring transactions need processing
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    setRecurringTransactions(prev => {
+      let changed = false;
+      const updated = prev.map(rt => {
+        if (!rt.active) return rt;
+        
+        if (rt.nextDate <= today && rt.lastProcessed !== today) {
+          // Process transaction
+          const targetAccount = accounts.find(a => a.id === rt.accountId);
+          
+          if (rt.type === 'expense' && targetAccount) {
+            setAccounts(accs => accs.map(a => a.id === rt.accountId ? { ...a, balance: a.balance - rt.amount } : a));
+          } else if (rt.type === 'income' && targetAccount) {
+            setAccounts(accs => accs.map(a => a.id === rt.accountId ? { ...a, balance: a.balance + rt.amount } : a));
+          }
+
+          const newTx: Transaction = {
+            id: crypto.randomUUID(),
+            type: rt.type,
+            amount: rt.amount,
+            category: rt.category,
+            date: today, // or rt.nextDate
+            description: `[Auto] ${rt.description}`,
+            paymentMethod: targetAccount?.name || rt.paymentMethod,
+            accountId: rt.accountId,
+            createdAt: new Date().toISOString()
+          };
+          
+          setTransactions(txs => [newTx, ...txs]);
+          changed = true;
+
+          // calculate next date
+          const nd = new Date(rt.nextDate);
+          if (rt.frequency === 'daily') nd.setDate(nd.getDate() + 1);
+          else if (rt.frequency === 'weekly') nd.setDate(nd.getDate() + 7);
+          else if (rt.frequency === 'monthly') nd.setMonth(nd.getMonth() + 1);
+          else if (rt.frequency === 'yearly') nd.setFullYear(nd.getFullYear() + 1);
+
+          return { ...rt, lastProcessed: today, nextDate: nd.toISOString().split('T')[0] };
+        }
+        return rt;
+      });
+      return changed ? updated : prev;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const value = {
     transactions,
     investments,
@@ -645,7 +720,11 @@ const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     gmailBackups,
     triggerGmailBackup,
     restoreFromGmail,
-    importLocalBackup
+    importLocalBackup,
+    recurringTransactions,
+    addRecurringTransaction,
+    deleteRecurringTransaction,
+    toggleRecurringTransaction
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
@@ -983,7 +1062,7 @@ const MiniKeypadCalculator = ({ onApply, onClose, formatMoney }: { onApply: (val
   ];
 
   return (
-    <div className="absolute top-14 left-0 right-0 bg-white dark:bg-slate-950 p-3 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-2xl z-[220] space-y-2 text-left animate-in slide-in-from-top-2 duration-200">
+    <div className="absolute top-14 left-0 right-0 bg-white dark:bg-slate-950 p-3 rounded-2xl border border-gray-200 dark:border-slate-700/50 shadow-2xl z-[220] space-y-2 text-left animate-in slide-in-from-top-2 duration-200">
       <div className="flex justify-between items-center px-1">
         <span className="text-[10px] uppercase font-black tracking-widest text-indigo-650 dark:text-indigo-400">
           Smart Calc
@@ -1271,7 +1350,7 @@ const AppLayout = () => {
   const isAuthRequired = signedUser === null && !bypassAuth;
 
   return (
-    <div className={`min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans antialiased overflow-x-hidden transition-colors`}>
+    <div className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased overflow-x-hidden transition-colors`}>
       
       {/* Dynamic Top Workspace Toolbar */}
       <header className="w-full bg-slate-950 border-b border-slate-800/80 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 z-40 shrink-0">
@@ -1610,7 +1689,7 @@ const AppLayout = () => {
                           if (soundEnabled) playHapticSound('tap');
                           updateSettings({ ...settings, darkMode: !settings.darkMode });
                         }}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 bg-neutral-100 hover:bg-neutral-200 dark:bg-slate-900 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center border border-transparent dark:border-slate-800"
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 bg-neutral-100 hover:bg-neutral-200 dark:bg-slate-900 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center border border-transparent dark:border-slate-700/50"
                         title="Toggle dark/light theme"
                       >
                         {settings.darkMode ? <Sun size={14} className="text-amber-400" /> : <Moon size={14} className="text-slate-650" />}
@@ -1629,7 +1708,7 @@ const AppLayout = () => {
                   </header>
 
                   {/* SCREEN BODY - SCROLLABLE PAGE AREA */}
-                  <div className="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-slate-900 transition-colors relative">
+                  <div className="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-slate-950 transition-colors relative">
                     {isAuthRequired ? (
                       <AuthView onBypass={() => setBypassAuth(true)} soundEnabled={soundEnabled} />
                     ) : settings.passcodeEnabled && settings.passcode && !isPasscodeUnlocked ? (
@@ -1702,7 +1781,7 @@ const AppLayout = () => {
             /* ==========================================================
                FLUID RESPONSIVE MOBILE & TABLET CLIENT FRAME
                ========================================================== */
-            <div className={`w-full max-w-6xl mx-auto min-h-screen lg:min-h-[calc(100vh-2rem)] lg:my-4 shadow-2xl relative flex flex-col overflow-hidden lg:rounded-3xl border border-slate-800 ${settings.darkMode ? 'dark bg-slate-900 text-slate-100' : 'bg-white text-slate-850'}`}>
+            <div className={`w-full max-w-6xl mx-auto min-h-screen lg:min-h-[calc(100vh-2rem)] lg:my-4 shadow-2xl relative flex flex-col overflow-hidden lg:rounded-3xl border border-slate-800 ${settings.darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-white text-slate-850'}`}>
               
               {/* Core Header */}
               <header className="h-16 bg-white dark:bg-slate-950 border-b dark:border-slate-900 flex items-center justify-between px-6 shrink-0 z-30 transition-all">
@@ -1720,7 +1799,7 @@ const AppLayout = () => {
                       if (soundEnabled) playHapticSound('tap');
                       updateSettings({ ...settings, darkMode: !settings.darkMode });
                     }}
-                    className="p-2 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 bg-neutral-100 hover:bg-neutral-200 dark:bg-slate-900 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center border border-transparent dark:border-slate-800"
+                    className="p-2 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 bg-neutral-100 hover:bg-neutral-200 dark:bg-slate-900 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center border border-transparent dark:border-slate-700/50"
                     title="Toggle dark/light theme"
                   >
                     {settings.darkMode ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} className="text-slate-650" />}
@@ -1752,7 +1831,7 @@ const AppLayout = () => {
               )}
 
               {/* Scrollable workspace content */}
-              <div className="flex-1 overflow-y-auto p-5 pb-24 bg-slate-50 dark:bg-slate-900 transition-colors relative">
+              <div className="flex-1 overflow-y-auto p-5 pb-24 bg-slate-50 dark:bg-slate-950 transition-colors relative">
                 {isAuthRequired ? (
                   <AuthView onBypass={() => setBypassAuth(true)} soundEnabled={soundEnabled} />
                 ) : settings.passcodeEnabled && settings.passcode && !isPasscodeUnlocked ? (
@@ -1825,7 +1904,7 @@ const AppLayout = () => {
               <div className="absolute inset-0" onClick={() => setIsFABSheetOpen(false)}></div>
               
               {/* Physical sliding slide pane */}
-              <div className="bg-white dark:bg-slate-950 w-full max-w-md rounded-t-[32px] border-t border-neutral-100 dark:border-slate-800 p-6 shadow-2xl relative z-[260] animate-in slide-in-from-bottom-24 duration-300 flex flex-col max-h-[92vh] overflow-y-auto">
+              <div className="bg-white dark:bg-slate-950 w-full max-w-md rounded-t-[32px] border-t border-neutral-100 dark:border-slate-700/50 p-6 shadow-2xl relative z-[260] animate-in slide-in-from-bottom-24 duration-300 flex flex-col max-h-[92vh] overflow-y-auto">
                 
                 {/* Visual iOS drag notch */}
                 <span className="w-12 h-1.5 bg-neutral-200 dark:bg-slate-800 rounded-full mx-auto mb-6 shrink-0"></span>
